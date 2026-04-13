@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MedQueue — Hospital Queue Prediction</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Epilogue:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -500,6 +502,7 @@ pre#jsonPreview {
   <button class="tab-btn" onclick="showPage('dashboard',this)">📊 Dashboard</button>
   <button class="tab-btn" onclick="showPage('howit',this)">ℹ️ How It Works</button>
   <button class="tab-btn" onclick="showPage('about',this)">👤 About</button>
+  <button class="tab-btn" onclick="showPage('map',this)">🗺️ Map</button>
   
 </nav>
 
@@ -542,7 +545,24 @@ pre#jsonPreview {
   </div>
 </div>
 </section>
-
+<!-- ═══ PAGE: MAP ═══ -->
+<section id="page-map" class="page">
+<div class="container">
+  <div class="section-head">
+    <h2>Find Nearest Hospital</h2>
+    <p>See all hospitals on the map and find the closest one to you.</p>
+  </div>
+  <div class="card" style="margin-bottom:20px;">
+    <button onclick="findNearest()" class="predict-btn" style="max-width:260px;">
+      📍 Use My Location
+    </button>
+  </div>
+  <div class="card">
+    <div id="map" style="height:480px; border-radius:10px;"></div>
+  </div>
+  <div class="card" style="margin-top:20px;" id="nearestResult"></div>
+</div>
+</section>
 <!-- ═══ PAGE: COMPARE ═══ -->
 <section id="page-compare" class="page">
 <div class="container">
