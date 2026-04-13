@@ -968,12 +968,99 @@ function renderJsonPreview() {
 
 /* ══════ TABS ══════ */
 function showPage(id,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
   btn.classList.add('active');
+  if (id === 'map') initMap(); // initialize map when tab is opened
+}
+}
+let mapObj = null;
+
+function initMap() {
+  if (mapObj) return; // don't init twice
+  mapObj = L.map('map').setView(
+    [DB.hospitals[0].latitude, DB.hospitals[0].longitude], 13
+  );
+
+  // Add OpenStreetMap tiles (the actual map background)
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(mapObj);
+
+  // Add a pin for each hospital
+  DB.hospitals.forEach(h => {
+    const w = Math.round(
+      h.departments.map(d => calcWait(d,1.0,1.0).total)
+                   .reduce((a,b)=>a+b,0) / h.departments.length
+    );
+    L.marker([h.latitude, h.longitude])
+      .addTo(mapObj)
+      .bindPopup(`
+        <strong>${h.name}</strong><br>
+        ${h.type} · ${h.address}<br>
+        Avg wait: <strong>${w} min</strong>
+      `);
+  });
 }
 
+function findNearest() {
+  if (!navigator.geolocation) {
+    alert('Geolocation is not supported by your browser.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const userLat = pos.coords.latitude;
+    const userLng = pos.coords.longitude;
+
+    // Add a pin for the user
+    L.marker([userLat, userLng], {
+      title: 'You are here'
+    }).addTo(mapObj).bindPopup('📍 You are here').openPopup();
+
+    // Calculate distance to each hospital using Haversine formula
+    function getDist(lat1, lng1, lat2, lng2) {
+      const R = 6371; // Earth radius in km
+      const dLat = (lat2-lat1) * Math.PI/180;
+      const dLng = (lng2-lng1) * Math.PI/180;
+      const a = Math.sin(dLat/2)**2 +
+                Math.cos(lat1*Math.PI/180) *
+                Math.cos(lat2*Math.PI/180) *
+                Math.sin(dLng/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
+
+    // Find the closest hospital
+    const sorted = DB.hospitals.map(h => ({
+      ...h,
+      dist: getDist(userLat, userLng, h.latitude, h.longitude)
+    })).sort((a,b) => a.dist - b.dist);
+
+    const nearest = sorted[0];
+
+    // Show result
+    document.getElementById('nearestResult').innerHTML = `
+      <div class="card-title">Nearest Hospital to You</div>
+      <div style="font-size:18px; font-weight:700; margin-bottom:6px;">
+        ${nearest.name}
+      </div>
+      <div style="color:var(--muted); font-size:14px; margin-bottom:12px;">
+        ${nearest.address} · ${nearest.dist.toFixed(1)} km away
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        ${sorted.map((h,i) => `
+          <span style="background:${i===0?'var(--teal-light)':'var(--surface2)'};
+            border:1px solid ${i===0?'var(--teal-mid)':'var(--border)'};
+            color:${i===0?'var(--teal-dark)':'var(--muted)'};
+            padding:5px 12px; border-radius:100px; font-size:12px; font-weight:600;">
+            ${i===0?'★ ':''} ${h.shortName} · ${h.dist.toFixed(1)}km
+          </span>`).join('')}
+      </div>`;
+
+    // Pan map to user
+    mapObj.setView([userLat, userLng], 13);
+  });
+}
 /* ══════ FALLBACK ══════ */
 function fallback(){return{meta:{version:'1.0',dataType:'fallback'},config:{timeMultipliers:{slots:{morning:{label:'Morning (8–12)',multiplier:0.85},midday:{label:'Midday (12–14)',multiplier:1.35},afternoon:{label:'Afternoon (14–17)',multiplier:1.20},evening:{label:'Evening (17–20)',multiplier:1.10}}},visitTypeModifiers:{types:{standard:{label:'Standard Visit',multiplier:1.00,description:'Normal queue priority'},urgent:{label:'Urgent (non-emergency)',multiplier:0.60,description:'Faster triage routing'},followup:{label:'Follow-up',multiplier:0.75,description:'Pre-scheduled priority'}}},loadThresholds:{low:{max:64},moderate:{max:79},high:{max:100}},waitThresholds:{low:{max:29},moderate:{max:59},high:{max:999}},hourlyPeakProfile:{values:[0.3,0.25,0.2,0.18,0.2,0.4,0.7,1.0,1.3,1.4,1.3,1.2,1.35,1.25,1.15,1.05,1.1,1.3,1.2,0.95,0.75,0.6,0.5,0.38]}},hospitals:[{id:'H001',name:'City General Hospital',shortName:'City General',type:'Public',category:'General',address:'12 Central Avenue, Downtown',phone:'+60-3-1234-5678',distanceKm:1.2,rating:4.2,totalBeds:420,operatingHours:'24 hours',tags:['24h ER','Trauma','ICU','Pediatric'],departments:[{id:'D001',name:'Emergency',shortName:'ER',icon:'🚨',patientsInQueue:28,doctorsOnDuty:{morningShift:5,eveningShift:4,nightShift:3},avgConsultMinutes:12,avgRegistrationMinutes:8,avgPharmacyMinutes:10,occupancyPercent:80,acceptingPatients:true,notes:'Trauma bay active.'},{id:'D002',name:'General OPD',shortName:'OPD',icon:'🩺',patientsInQueue:35,doctorsOnDuty:{morningShift:6,eveningShift:4,nightShift:0},avgConsultMinutes:10,avgRegistrationMinutes:5,avgPharmacyMinutes:8,occupancyPercent:70,acceptingPatients:true,notes:'Walk-in accepted.'},{id:'D003',name:'Pediatric',shortName:'Peds',icon:'👶',patientsInQueue:18,doctorsOnDuty:{morningShift:3,eveningShift:2,nightShift:1},avgConsultMinutes:14,avgRegistrationMinutes:6,avgPharmacyMinutes:10,occupancyPercent:60,acceptingPatients:true,notes:'Child-friendly area.'}]},{id:'H002',name:'Northside Medical Centre',shortName:'Northside',type:'Private',category:'General',address:'88 Northside Blvd',phone:'+60-3-2345-6789',distanceKm:2.8,rating:4.6,totalBeds:280,operatingHours:'24 hours',tags:['Private','Specialist'],departments:[{id:'D009',name:'Emergency',shortName:'ER',icon:'🚨',patientsInQueue:20,doctorsOnDuty:{morningShift:4,eveningShift:3,nightShift:2},avgConsultMinutes:12,avgRegistrationMinutes:6,avgPharmacyMinutes:10,occupancyPercent:65,acceptingPatients:true,notes:'Private ER.'},{id:'D010',name:'General OPD',shortName:'OPD',icon:'🩺',patientsInQueue:22,doctorsOnDuty:{morningShift:5,eveningShift:3,nightShift:0},avgConsultMinutes:10,avgRegistrationMinutes:4,avgPharmacyMinutes:7,occupancyPercent:55,acceptingPatients:true,notes:'Appointment preferred.'},{id:'D011',name:'Pediatric',shortName:'Peds',icon:'👶',patientsInQueue:14,doctorsOnDuty:{morningShift:3,eveningShift:2,nightShift:1},avgConsultMinutes:15,avgRegistrationMinutes:5,avgPharmacyMinutes:9,occupancyPercent:50,acceptingPatients:true,notes:'Level 3 ward.'}]}]};}
 
