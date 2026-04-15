@@ -1,0 +1,870 @@
+{
+  "meta": {
+    "version": "1.0",
+    "description": "Simulated hospital queue data for MedQueue prediction system",
+    "dataType": "simulated",
+    "lastUpdated": "2026-04-09",
+    "updateFrequency": "Every 2 minutes in a live system"
+  },
+
+  "config": {
+    "timeMultipliers": {
+      "description": "Adjusts wait time based on time of day. Values above 1.0 mean busier than average.",
+      "slots": {
+        "early_morning": { "label": "Early Morning (6–8)",  "hours": [6,7],            "multiplier": 0.45 },
+        "morning":       { "label": "Morning (8–12)",       "hours": [8,9,10,11],      "multiplier": 0.85 },
+        "midday":        { "label": "Midday (12–14)",       "hours": [12,13],          "multiplier": 1.35 },
+        "afternoon":     { "label": "Afternoon (14–17)",    "hours": [14,15,16],       "multiplier": 1.20 },
+        "evening":       { "label": "Evening (17–20)",      "hours": [17,18,19],       "multiplier": 1.10 },
+        "night":         { "label": "Night (20–24)",        "hours": [20,21,22,23],    "multiplier": 0.65 }
+      }
+    },
+
+    "visitTypeModifiers": {
+      "description": "Adjusts wait time based on patient visit category.",
+      "types": {
+        "standard":  { "label": "Standard Visit",           "multiplier": 1.00, "description": "Normal queue priority" },
+        "urgent":    { "label": "Urgent (non-emergency)",   "multiplier": 0.60, "description": "Faster triage routing" },
+        "followup":  { "label": "Follow-up Appointment",   "multiplier": 0.75, "description": "Pre-scheduled priority" },
+        "emergency": { "label": "Emergency",                "multiplier": 0.30, "description": "Immediate triage — bypasses queue" }
+      }
+    },
+
+    "loadThresholds": {
+      "description": "Occupancy % thresholds used to classify department load level.",
+      "low":      { "max": 64,  "label": "Low",      "color": "green" },
+      "moderate": { "max": 79,  "label": "Moderate", "color": "warn"  },
+      "high":     { "max": 100, "label": "High",      "color": "danger" }
+    },
+
+    "waitThresholds": {
+      "description": "Total wait time (minutes) thresholds used to classify wait level.",
+      "low":      { "max": 29,  "label": "Low wait",  "color": "green" },
+      "moderate": { "max": 59,  "label": "Moderate",  "color": "warn"  },
+      "high":     { "max": 999, "label": "High load",  "color": "danger" }
+    },
+
+    "hourlyPeakProfile": {
+      "description": "Relative patient volume by hour (0–23). 1.0 = average load. Used for dashboard chart.",
+      "values": [0.30, 0.25, 0.20, 0.18, 0.20, 0.40, 0.70, 1.00, 1.30, 1.40, 1.30, 1.20,
+                 1.35, 1.25, 1.15, 1.05, 1.10, 1.30, 1.20, 0.95, 0.75, 0.60, 0.50, 0.38]
+    }
+  },
+
+  "hospitals": [
+    {
+      "id": "H001",
+      "name": "Apollo General Hospital",
+      "shortName": "Apollo General",
+      "type": "Public",
+      "category": "General",
+      "address": "#13 Nehru Road, Charholi",
+      "phone": "+91 10982834765",
+      "distanceKm": 1.2,
+      "rating": 4.2,
+      "totalBeds": 420,
+      "operatingHours": "24 hours",
+      "tags": ["24h ER", "Trauma Centre", "ICU", "Pediatric Ward"],
+      "latitude": 18.63602778,
+      "longitude": 75.92105556,
+      "departments": [
+        {
+          "id": "D001",
+          "name": "Emergency",
+          "shortName": "ER",
+          "icon": "🚨",
+          "patientsInQueue": 15,
+          "doctorsOnDuty": {
+            "morningShift": 5,
+            "eveningShift": 4,
+            "nightShift": 3
+          },
+          "avgConsultMinutes": 12,
+          "avgRegistrationMinutes": 8,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 80,
+          "acceptingPatients": true,
+          "notes": "Trauma bay active. Expect triage delay during peak hours."
+        },
+        {
+          "id": "D002",
+          "name": "General OPD",
+          "shortName": "OPD",
+          "icon": "🩺",
+          "patientsInQueue": 35,
+          "doctorsOnDuty": {
+            "morningShift": 6,
+            "eveningShift": 4,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 10,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 70,
+          "acceptingPatients": true,
+          "notes": "Walk-in accepted. Closes at 22:00."
+        },
+        {
+          "id": "D003",
+          "name": "Pediatric",
+          "shortName": "Peds",
+          "icon": "👶",
+          "patientsInQueue": 18,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 14,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 60,
+          "acceptingPatients": true,
+          "notes": "Child-friendly waiting area available."
+        },
+        {
+          "id": "D004",
+          "name": "Cardiology",
+          "shortName": "Cardio",
+          "icon": "❤️",
+          "patientsInQueue": 12,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 20,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 12,
+          "occupancyPercent": 55,
+          "acceptingPatients": true,
+          "notes": "ECG and stress tests available on-site."
+        },
+        {
+          "id": "D005",
+          "name": "Orthopedic",
+          "shortName": "Ortho",
+          "icon": "🦴",
+          "patientsInQueue": 10,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 18,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 50,
+          "acceptingPatients": true,
+          "notes": "X-ray available in-department."
+        },
+        {
+          "id": "D006",
+          "name": "Radiology",
+          "shortName": "X-ray",
+          "icon": "🔬",
+          "patientsInQueue": 14,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 20,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 0,
+          "occupancyPercent": 62,
+          "acceptingPatients": true,
+          "notes": "MRI and CT scan available. Referral required."
+        },
+        {
+          "id": "D007",
+          "name": "Obstetrics & Gynaecology",
+          "shortName": "OBG",
+          "icon": "🤰",
+          "patientsInQueue": 9,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 18,
+          "avgRegistrationMinutes": 7,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 58,
+          "acceptingPatients": true,
+          "notes": "Antenatal clinic runs Mon–Fri mornings."
+        },
+        {
+          "id": "D008",
+          "name": "Dermatology",
+          "shortName": "Derm",
+          "icon": "🧴",
+          "patientsInQueue": 20,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 12,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 75,
+          "acceptingPatients": true,
+          "notes": "High demand. Consider booking in advance."
+        }
+      ]
+    },
+
+    {
+      "id": "H002",
+      "name": "Surya Medical Centre",
+      "shortName": "Surya",
+      "type": "Private",
+      "category": "General",
+      "address": "#8 Surya Lane, Bhosari",
+      "phone": "+91 7651234875",
+      "distanceKm": 2.8,
+      "rating": 4.6,
+      "totalBeds": 280,
+      "operatingHours": "24 hours",
+      "tags": ["Private", "Specialist Clinics", "Maternity", "Oncology"],
+      "latitude" : 18.645318, 
+      "longitude": 73.852580,
+      "departments": [
+        {
+          "id": "D009",
+          "name": "Emergency",
+          "shortName": "ER",
+          "icon": "🚨",
+          "patientsInQueue": 20,
+          "doctorsOnDuty": {
+            "morningShift": 4,
+            "eveningShift": 3,
+            "nightShift": 2
+          },
+          "avgConsultMinutes": 12,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 65,
+          "acceptingPatients": true,
+          "notes": "Private ER. Faster processing than public hospitals."
+        },
+        {
+          "id": "D010",
+          "name": "General OPD",
+          "shortName": "OPD",
+          "icon": "🩺",
+          "patientsInQueue": 22,
+          "doctorsOnDuty": {
+            "morningShift": 5,
+            "eveningShift": 3,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 10,
+          "avgRegistrationMinutes": 4,
+          "avgPharmacyMinutes": 7,
+          "occupancyPercent": 55,
+          "acceptingPatients": true,
+          "notes": "Appointment preferred but walk-in accepted."
+        },
+        {
+          "id": "D011",
+          "name": "Pediatric",
+          "shortName": "Peds",
+          "icon": "👶",
+          "patientsInQueue": 14,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 15,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 9,
+          "occupancyPercent": 50,
+          "acceptingPatients": true,
+          "notes": "Dedicated paediatric ward on Level 3."
+        },
+        {
+          "id": "D012",
+          "name": "Cardiology",
+          "shortName": "Cardio",
+          "icon": "❤️",
+          "patientsInQueue": 16,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 22,
+          "avgRegistrationMinutes": 7,
+          "avgPharmacyMinutes": 14,
+          "occupancyPercent": 60,
+          "acceptingPatients": true,
+          "notes": "Specialist cardiologists available daily."
+        },
+        {
+          "id": "D013",
+          "name": "Orthopedic",
+          "shortName": "Ortho",
+          "icon": "🦴",
+          "patientsInQueue": 8,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 2,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 16,
+          "avgRegistrationMinutes": 4,
+          "avgPharmacyMinutes": 7,
+          "occupancyPercent": 40,
+          "acceptingPatients": true,
+          "notes": "Sports injury clinic available Wed & Fri."
+        },
+        {
+          "id": "D014",
+          "name": "Oncology",
+          "shortName": "Onco",
+          "icon": "🧬",
+          "patientsInQueue": 10,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 30,
+          "avgRegistrationMinutes": 8,
+          "avgPharmacyMinutes": 20,
+          "occupancyPercent": 62,
+          "acceptingPatients": true,
+          "notes": "Chemotherapy sessions by appointment only."
+        },
+        {
+          "id": "D015",
+          "name": "Obstetrics & Gynaecology",
+          "shortName": "OBG",
+          "icon": "🤰",
+          "patientsInQueue": 12,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 18,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 68,
+          "acceptingPatients": true,
+          "notes": "Full maternity suite available. 24h delivery support."
+        },
+        {
+          "id": "D016",
+          "name": "Neurology",
+          "shortName": "Neuro",
+          "icon": "🧠",
+          "patientsInQueue": 7,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 25,
+          "avgRegistrationMinutes": 7,
+          "avgPharmacyMinutes": 12,
+          "occupancyPercent": 48,
+          "acceptingPatients": true,
+          "notes": "EEG and nerve conduction studies available."
+        }
+      ]
+    },
+
+    {
+      "id": "H003",
+      "name": "Riverside Urgent Care",
+      "shortName": "Riverside",
+      "type": "Public",
+      "category": "Urgent Care",
+      "address": "#3 River Walk, Alandi",
+      "phone": "+91 6743374356",
+      "distanceKm": 0.7,
+      "rating": 3.9,
+      "totalBeds": 120,
+      "operatingHours": "6:00 AM – 12:00 AM",
+      "tags": ["Walk-in", "X-ray", "Minor Injuries", "Fast Track"],
+      "latitude" : 18.668154,
+      "longitude" : 73.905263,
+      "departments": [
+        {
+          "id": "D017",
+          "name": "Emergency",
+          "shortName": "ER",
+          "icon": "🚨",
+          "patientsInQueue": 42,
+          "doctorsOnDuty": {
+            "morningShift": 4,
+            "eveningShift": 3,
+            "nightShift": 2
+          },
+          "avgConsultMinutes": 8,
+          "avgRegistrationMinutes": 10,
+          "avgPharmacyMinutes": 12,
+          "occupancyPercent": 92,
+          "acceptingPatients": true,
+          "notes": "Currently at high capacity. Long delays expected."
+        },
+        {
+          "id": "D018",
+          "name": "General OPD",
+          "shortName": "OPD",
+          "icon": "🩺",
+          "patientsInQueue": 30,
+          "doctorsOnDuty": {
+            "morningShift": 4,
+            "eveningShift": 3,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 8,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 82,
+          "acceptingPatients": true,
+          "notes": "High walk-in volume. Consider off-peak visit."
+        },
+        {
+          "id": "D019",
+          "name": "Pediatric",
+          "shortName": "Peds",
+          "icon": "👶",
+          "patientsInQueue": 22,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 12,
+          "avgRegistrationMinutes": 7,
+          "avgPharmacyMinutes": 9,
+          "occupancyPercent": 75,
+          "acceptingPatients": true,
+          "notes": "Paediatric fast-track available for under-5s."
+        },
+        {
+          "id": "D020",
+          "name": "Orthopedic",
+          "shortName": "Ortho",
+          "icon": "🦴",
+          "patientsInQueue": 14,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 2,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 15,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 70,
+          "acceptingPatients": true,
+          "notes": "Fractures and sprains handled. On-site casting."
+        },
+        {
+          "id": "D021",
+          "name": "Radiology",
+          "shortName": "X-ray",
+          "icon": "🔬",
+          "patientsInQueue": 18,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 15,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 0,
+          "occupancyPercent": 78,
+          "acceptingPatients": true,
+          "notes": "X-ray only. CT/MRI not available at this centre."
+        },
+        {
+          "id": "D022",
+          "name": "Cardiology",
+          "shortName": "Cardio",
+          "icon": "❤️",
+          "patientsInQueue": 8,
+          "doctorsOnDuty": {
+            "morningShift": 1,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 20,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 60,
+          "acceptingPatients": true,
+          "notes": "Basic cardiac monitoring only. Refer to specialist for complex cases."
+        },
+        {
+          "id": "D023",
+          "name": "Dermatology",
+          "shortName": "Derm",
+          "icon": "🧴",
+          "patientsInQueue": 16,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 10,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 7,
+          "occupancyPercent": 68,
+          "acceptingPatients": true,
+          "notes": "Common skin conditions treated. Referral for complex cases."
+        },
+        {
+          "id": "D024",
+          "name": "Obstetrics & Gynaecology",
+          "shortName": "OBG",
+          "icon": "🤰",
+          "patientsInQueue": 6,
+          "doctorsOnDuty": {
+            "morningShift": 1,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 18,
+          "avgRegistrationMinutes": 7,
+          "avgPharmacyMinutes": 9,
+          "occupancyPercent": 45,
+          "acceptingPatients": true,
+          "notes": "Basic OBG only. No delivery suite. Refer to H001 or H002 for maternity."
+        }
+      ]
+    },
+
+    {
+      "id": "H004",
+      "name": "St. Mary's Specialist Hospital",
+      "shortName": "St. Mary's",
+      "type": "Private",
+      "category": "Specialist",
+      "address": "#6 Heritage Lane, Lohegaon",
+      "phone": "+91 2345678910",
+      "distanceKm": 4.1,
+      "rating": 4.8,
+      "totalBeds": 200,
+      "operatingHours": "24 hours",
+      "tags": ["Specialist", "Cardiology", "Neurology", "Oncology", "Research"],
+      "latitude" : 18.592221,
+      "longitude" : 73.924889,
+      "departments": [
+        {
+          "id": "D025",
+          "name": "Emergency",
+          "shortName": "ER",
+          "icon": "🚨",
+          "patientsInQueue": 12,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 3,
+            "nightShift": 2
+          },
+          "avgConsultMinutes": 15,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 45,
+          "acceptingPatients": true,
+          "notes": "Low wait times. Specialist-level emergency care."
+        },
+        {
+          "id": "D026",
+          "name": "General OPD",
+          "shortName": "OPD",
+          "icon": "🩺",
+          "patientsInQueue": 18,
+          "doctorsOnDuty": {
+            "morningShift": 4,
+            "eveningShift": 3,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 12,
+          "avgRegistrationMinutes": 4,
+          "avgPharmacyMinutes": 7,
+          "occupancyPercent": 48,
+          "acceptingPatients": true,
+          "notes": "Consultation with specialists available by request."
+        },
+        {
+          "id": "D027",
+          "name": "Cardiology",
+          "shortName": "Cardio",
+          "icon": "❤️",
+          "patientsInQueue": 14,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 25,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 12,
+          "occupancyPercent": 55,
+          "acceptingPatients": true,
+          "notes": "Cath lab on-site. Interventional cardiology available."
+        },
+        {
+          "id": "D028",
+          "name": "Neurology",
+          "shortName": "Neuro",
+          "icon": "🧠",
+          "patientsInQueue": 9,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 28,
+          "avgRegistrationMinutes": 7,
+          "avgPharmacyMinutes": 14,
+          "occupancyPercent": 52,
+          "acceptingPatients": true,
+          "notes": "Stroke unit available. Neuroimaging on-site."
+        },
+        {
+          "id": "D029",
+          "name": "Oncology",
+          "shortName": "Onco",
+          "icon": "🧬",
+          "patientsInQueue": 11,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 30,
+          "avgRegistrationMinutes": 8,
+          "avgPharmacyMinutes": 20,
+          "occupancyPercent": 60,
+          "acceptingPatients": true,
+          "notes": "Full oncology suite. Research trials ongoing."
+        },
+        {
+          "id": "D030",
+          "name": "Orthopedic",
+          "shortName": "Ortho",
+          "icon": "🦴",
+          "patientsInQueue": 12,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 18,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 9,
+          "occupancyPercent": 50,
+          "acceptingPatients": true,
+          "notes": "Joint replacement and spine surgery specialists on-site."
+        },
+        {
+          "id": "D031",
+          "name": "Dermatology",
+          "shortName": "Derm",
+          "icon": "🧴",
+          "patientsInQueue": 10,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 15,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 44,
+          "acceptingPatients": true,
+          "notes": "Cosmetic and medical dermatology available."
+        },
+        {
+          "id": "D032",
+          "name": "Radiology",
+          "shortName": "X-ray",
+          "icon": "🔬",
+          "patientsInQueue": 8,
+          "doctorsOnDuty": {
+            "morningShift": 3,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 20,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 0,
+          "occupancyPercent": 42,
+          "acceptingPatients": true,
+          "notes": "Full imaging suite: X-ray, CT, MRI, PET scan."
+        }
+      ]
+    },
+
+    {
+      "id": "H005",
+      "name": "Lotus Children's Hospital",
+      "shortName": "Lotus",
+      "type": "Public",
+      "category": "Pediatric",
+      "address": "#20 Lotus Drive, Dhanori",
+      "phone": "+91 8795432167",
+      "distanceKm": 5.6,
+      "rating": 4.5,
+      "totalBeds": 180,
+      "operatingHours": "24 hours",
+      "tags": ["Pediatric", "NICU", "Child Surgery", "24h", "Child-Friendly"],
+      "latitude" : 18.594050,
+      "longitude" : 73.894798,
+      "departments": [
+        {
+          "id": "D033",
+          "name": "Emergency",
+          "shortName": "ER",
+          "icon": "🚨",
+          "patientsInQueue": 22,
+          "doctorsOnDuty": {
+            "morningShift": 4,
+            "eveningShift": 3,
+            "nightShift": 2
+          },
+          "avgConsultMinutes": 13,
+          "avgRegistrationMinutes": 7,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 70,
+          "acceptingPatients": true,
+          "notes": "Paediatric emergency only. Adults not accepted."
+        },
+        {
+          "id": "D034",
+          "name": "General OPD",
+          "shortName": "OPD",
+          "icon": "🩺",
+          "patientsInQueue": 25,
+          "doctorsOnDuty": {
+            "morningShift": 4,
+            "eveningShift": 3,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 11,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 68,
+          "acceptingPatients": true,
+          "notes": "All patients must be under 18."
+        },
+        {
+          "id": "D035",
+          "name": "Pediatric",
+          "shortName": "Peds",
+          "icon": "👶",
+          "patientsInQueue": 30,
+          "doctorsOnDuty": {
+            "morningShift": 5,
+            "eveningShift": 4,
+            "nightShift": 2
+          },
+          "avgConsultMinutes": 14,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 72,
+          "acceptingPatients": true,
+          "notes": "Sub-specialties: neonatal, developmental, infectious disease."
+        },
+        {
+          "id": "D036",
+          "name": "Cardiology",
+          "shortName": "Cardio",
+          "icon": "❤️",
+          "patientsInQueue": 8,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 20,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 10,
+          "occupancyPercent": 42,
+          "acceptingPatients": true,
+          "notes": "Congenital heart disease specialists available."
+        },
+        {
+          "id": "D037",
+          "name": "Orthopedic",
+          "shortName": "Ortho",
+          "icon": "🦴",
+          "patientsInQueue": 6,
+          "doctorsOnDuty": {
+            "morningShift": 1,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 15,
+          "avgRegistrationMinutes": 4,
+          "avgPharmacyMinutes": 7,
+          "occupancyPercent": 38,
+          "acceptingPatients": true,
+          "notes": "Paediatric fracture clinic. Growth plate expertise."
+        },
+        {
+          "id": "D038",
+          "name": "Neurology",
+          "shortName": "Neuro",
+          "icon": "🧠",
+          "patientsInQueue": 7,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 22,
+          "avgRegistrationMinutes": 6,
+          "avgPharmacyMinutes": 12,
+          "occupancyPercent": 44,
+          "acceptingPatients": true,
+          "notes": "Epilepsy and developmental neurology focus."
+        },
+        {
+          "id": "D039",
+          "name": "Dermatology",
+          "shortName": "Derm",
+          "icon": "🧴",
+          "patientsInQueue": 11,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 1,
+            "nightShift": 0
+          },
+          "avgConsultMinutes": 12,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 8,
+          "occupancyPercent": 55,
+          "acceptingPatients": true,
+          "notes": "Eczema, rashes, and skin infections most common."
+        },
+        {
+          "id": "D040",
+          "name": "Radiology",
+          "shortName": "X-ray",
+          "icon": "🔬",
+          "patientsInQueue": 9,
+          "doctorsOnDuty": {
+            "morningShift": 2,
+            "eveningShift": 2,
+            "nightShift": 1
+          },
+          "avgConsultMinutes": 18,
+          "avgRegistrationMinutes": 5,
+          "avgPharmacyMinutes": 0,
+          "occupancyPercent": 50,
+          "acceptingPatients": true,
+          "notes": "Low-dose paediatric imaging protocols in use."
+        }
+      ]
+    }
+  ]
+}
