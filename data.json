@@ -65,7 +65,7 @@
       "totalBeds": 420,
       "operatingHours": "24 hours",
       "tags": ["24h ER", "Trauma Centre", "ICU", "Pediatric Ward"],
-      "latitude": 18.63602778
+      "latitude": 18.63602778,
       "longitude": 75.92105556
       "departments": [
         {
@@ -228,7 +228,7 @@
       "totalBeds": 280,
       "operatingHours": "24 hours",
       "tags": ["Private", "Specialist Clinics", "Maternity", "Oncology"],
-      "latitude" : 18.645318 
+      "latitude" : 18.645318,
       "longitude": 73.852580
       "departments": [
         {
@@ -554,7 +554,7 @@
       "totalBeds": 200,
       "operatingHours": "24 hours",
       "tags": ["Specialist", "Cardiology", "Neurology", "Oncology", "Research"],
-      "latitude" : 18.592221
+      "latitude" : 18.592221,
       "longitude" : 73.924889
       "departments": [
         {
@@ -717,7 +717,7 @@
       "totalBeds": 180,
       "operatingHours": "24 hours",
       "tags": ["Pediatric", "NICU", "Child Surgery", "24h", "Child-Friendly"],
-      "latitude" : 18.594050
+      "latitude" : 18.594050,
       "longitude" : 73.894798
       "departments": [
         {
