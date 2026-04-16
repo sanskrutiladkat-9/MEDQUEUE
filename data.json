@@ -65,8 +65,8 @@
       "totalBeds": 420,
       "operatingHours": "24 hours",
       "tags": ["24h ER", "Trauma Centre", "ICU", "Pediatric Ward"],
-      "latitude": 18.63602778,
-      "longitude": 75.92105556,
+      "latitude": 18.648002227664566, 73.92032693518556
+      "longitude": 73.92032693518556,
       "departments": [
         {
           "id": "D001",
