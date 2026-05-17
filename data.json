@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0",
-    "description": "Simulated hospital queue data for MedQueue prediction system",
+    "description": "Simulated hospital queue data for QSense prediction system",
     "dataType": "simulated",
     "lastUpdated": "2026-04-09",
     "updateFrequency": "Every 2 minutes in a live system"
